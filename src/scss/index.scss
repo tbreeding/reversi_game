@@ -27,6 +27,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  cursor: pointer;
 }
 .dark {
   background-color: green;
@@ -38,7 +39,7 @@ body {
   height: $spaceDim * .90;
   width: $spaceDim * .90;
   border-radius: 50%;
-  cursor: pointer;
+  cursor: not-allowed;
 }
 .playerOne {
   background-color: white;
