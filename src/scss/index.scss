@@ -53,8 +53,9 @@ body {
   border: 5px solid green;
   background-color: greenyellow;
   height: 100px;
-  width: 200px;
+  width: 300px;
   display: flex;
+  justify-content: space-around;
   align-items: center;
   padding: 10px;
 }
