@@ -12,6 +12,17 @@ const boardState =  [
                     ]
 const whosTurn = document.getElementById("turn");
 
+const empty = 0;
+const black = 1;
+const white = 2;
+
+let playerTurn; 
+let nextTurn = false;
+
+const blackHtml = `<div class="circle playerTwo"></div>`;
+const whiteHtml = `<div class="circle playerOne"></div>`;
+
+//load the coordinates into the spaces
 const loadCoordinates = () => {
     let counter = 0;
     for(let i = 0; i < Math.sqrt(spaces.length); i++) {
@@ -23,16 +34,7 @@ const loadCoordinates = () => {
     }
 }
 
-const empty = 0;
-const black = 1;
-const white = 2;
-
-let playerTurn; 
-let nextTurn = false;
-
-const blackHtml = `<div class="circle playerTwo"></div>`;
-const whiteHtml = `<div class="circle playerOne"></div>`;
-
+//place the appropriate circles on spaces in the UI
 const paintBoard = () => {
     let currSpace;
     for(let i = 0; i < boardState.length; i++) {
@@ -53,16 +55,8 @@ const paintBoard = () => {
     return;
 }
 
-const changeTurn = (turn) => {
-    whosTurn = (black) ? white : black;
-    whosTurn.innerText = (turn == black) ? "Black" : "White";
-    return;
-}
-
+//search the surrounding spaces for possible moves
 const search = (currPlayer, square, stepRow, stepCol, dir) => {
-   
-    // console.log(dir)
-    
     let col, row;
     const opponent = currPlayer === black ? white : black;
     //test to see if a blank square or an occupied square has been clicked
@@ -84,54 +78,50 @@ const search = (currPlayer, square, stepRow, stepCol, dir) => {
             let curCol = col + stepCol;
 
             while(!end) {
-                
-                //else if the adjacent square is the past the end of the board 
-                //**this must be first or you will get an undefined if testing for another condition
-                    //end loop and return
-                //if the adjacent square is the opponent
-                    //push that square's coordinates to an Array (good spots)
-                    //increase the steps by their step value to set the new coordinate for testing
-                    //continue loop
-                //else if the adjacent square is empty
-                    //end loop and return
-                //else if the adjacent square is the past the end of the board
-                    //end loop and return
-                //else if the adjacent square is the current player
-                    //flip all coordinates of (good spots) Array to current player
-                    //end turn
 
                     // let compareSpotVal = boardState[curRow][curCol];
                     // let curIsOpp = compareSpotVal == opponent;
-                if((curRow < 0) || (curRow >= Math.sqrt(spaces.length)) || (curCol < 0) || (curCol >= Math.sqrt(spaces.length))) {
-                    return;
-                    end = true;
 
-                } else if(boardState[curRow][curCol] === 0){                    
+                
+                if((curRow < 0) || (curRow >= Math.sqrt(spaces.length)) || (curCol < 0) || (curCol >= Math.sqrt(spaces.length))) {
+                    //if the adjacent square is the past the end of the board 
+                    //**this must be first or you will get an undefined if testing for another condition
+                        //end loop and return
                     return;
-                    end = true;
+                } else if(boardState[curRow][curCol] === 0){
+                    //else if the adjacent square is empty
+                        //end loop and return                 
+                    return;
                 } else if(boardState[curRow][curCol] == opponent) {
-                    
+                    //else if the adjacent square is the opponent
+                        //push that square's coordinates to an Array (good spots)
+                        //increase the steps by their step value to set the new coordinate for testing
+                        //continue loop
                     goodSpots.push([curRow, curCol])
                     curRow += stepRow;
                     curCol += stepCol;
-                    // console.log("push", goodSpots);
                 } else {
+                    //else if the adjacent square is the current player
+                        //flip all coordinates of (good spots) Array to current player (even if it's zero)
+                        //end turn
                     goodSpots.forEach(val => {
                         boardState[val[0]][val[1]] = currPlayer;
                     })
+
+                    //if move yeilded some goodSpots, flip the clicked position to current player
+                    // flag for next move and repaint the board
                     if(goodSpots.length > 0) {
                         boardState[row][col] = currPlayer;
                         nextTurn = true;
                         paintBoard();
-
                     } 
                     return;
-                    end = true;
                 }
             } 
         return;
 }
 
+//initial check if the move is valid
 const isValidMove = (square) => {
     let isValid = false
     
@@ -145,8 +135,10 @@ const isValidMove = (square) => {
     }
     
     let currSpot = boardState[row][col];
+    //if there is already something there, not valid.
     if(currSpot !== 0) return false;
 
+    //check to see if each adjacent space is off the board, blank, or the opponent's piece
     if (row - 1 >= 0 && boardState[row - 1][col] && boardState[row - 1][col] != playerTurn) isValid = true //up
     if (row + 1 < Math.sqrt(spaces.length) && boardState[row + 1][col] && boardState[row + 1][col] != playerTurn) isValid = true //down
     if (col + 1 < Math.sqrt(spaces.length) && boardState[row][col + 1] && boardState[row][col + 1] != playerTurn) isValid = true //right
@@ -156,14 +148,13 @@ const isValidMove = (square) => {
     if (col + 1 < Math.sqrt(spaces.length) && row + 1 < Math.sqrt(spaces.length) && boardState[row + 1][col + 1] && boardState[row + 1][col + 1] != playerTurn) isValid = true //down, right
     if (col - 1 >= 0 && row + 1 < Math.sqrt(spaces.length) && boardState[row + 1][col - 1] && boardState[row + 1][col - 1] != playerTurn) isValid = true //down, left
 
-    console.log(isValid)
     return isValid;
-
 }
 
 const spaceClickHandler = (e) => {
+    
     nextTurn = false;
-    // debugger;
+
     if(isValidMove(e)) {
     //Check to the right
         search(playerTurn, e, 0, 1, "right");
