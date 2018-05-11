@@ -1,17 +1,9 @@
 //Global Variables
 const spaces = document.querySelectorAll(".space");
-const boardState =  [
-                        [0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0],
-                        [0,0,0,0,0,0,0,0]
-                    ]
 const whosTurn = document.getElementById("turn");
+const resetBtn = document.getElementById("resetBtn");
 
+let boardState =  [];
 const empty = 0;
 const black = 1;
 const white = 2;
@@ -55,6 +47,19 @@ const paintBoard = () => {
     return;
 }
 
+const checkEndGame = () => {
+
+    boardState.forEach((row, rowIndex) => {
+        row.forEach((col, colIndex) => {
+            if(boardState[rowIndex][colIndex] !== 0) {
+                // console.log(`Row ${rowIndex + 1} Col ${colIndex + 1}`,"=",boardState[rowIndex][colIndex])
+            }
+        });
+    });
+    // console.log(`@@@@@@@@@@ End @@@@@@@@@@`);
+    return false;
+}
+
 //search the surrounding spaces for possible moves
 const search = (currPlayer, square, stepRow, stepCol, dir) => {
     let col, row;
@@ -78,20 +83,16 @@ const search = (currPlayer, square, stepRow, stepCol, dir) => {
             let curCol = col + stepCol;
 
             while(!end) {
-
-                    // let compareSpotVal = boardState[curRow][curCol];
-                    // let curIsOpp = compareSpotVal == opponent;
-
                 
                 if((curRow < 0) || (curRow >= Math.sqrt(spaces.length)) || (curCol < 0) || (curCol >= Math.sqrt(spaces.length))) {
                     //if the adjacent square is the past the end of the board 
                     //**this must be first or you will get an undefined if testing for another condition
                         //end loop and return
-                    return;
+                    end = true;
                 } else if(boardState[curRow][curCol] === 0){
                     //else if the adjacent square is empty
                         //end loop and return                 
-                    return;
+                    end = true;
                 } else if(boardState[curRow][curCol] == opponent) {
                     //else if the adjacent square is the opponent
                         //push that square's coordinates to an Array (good spots)
@@ -115,8 +116,9 @@ const search = (currPlayer, square, stepRow, stepCol, dir) => {
                         nextTurn = true;
                         paintBoard();
                     } 
-                    return;
+                    end = true
                 }
+
             } 
         return;
 }
@@ -168,13 +170,28 @@ const spaceClickHandler = (e) => {
         search(playerTurn, e, -1, -1, "up, left");        
     }
     if(nextTurn) {
-        playerTurn = playerTurn == black ? white : black;
-        whosTurn.innerText = (playerTurn === black) ? "Black" : "White";
+        if(!checkEndGame()) {
+            playerTurn = playerTurn == black ? white : black;
+            whosTurn.innerText = (playerTurn === black) ? "Black" : "White";
+        } else {
+            // endGame();
+        }
     }
 }
 
 
 const gameLoad = () => {
+    
+    boardState =  [
+        [0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0]
+    ]
 
     boardState[3][3] = white;
     boardState[4][4] = white;
@@ -189,6 +206,9 @@ const gameLoad = () => {
 
     spaces.forEach(space => {
         space.addEventListener("click", spaceClickHandler, false);
-    })
+    });
+
+    resetBtn.addEventListener("click", gameLoad, false);
+
 }
 gameLoad();
