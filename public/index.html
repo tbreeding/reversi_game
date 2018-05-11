@@ -76,7 +76,19 @@
   </div>
   <div class="controlPanel">
     <h2>Player Turn: <span id="turn"></span></h2>
-    <div id="resetBtn">Reset</div>
+    <div class="resetBtn">Reset</div>
+  </div>
+  <div id="gameOverModal">
+    <div id="gameOver">
+      <h2>Game Over!</h2>
+      <h3>No More Valid Moves!</h3>
+      <div id="scores">
+        <h3>Black: <span id="blackScore"></span></h3>
+        <h3>White: <span id="whiteScore"></span></h3>
+      </div>
+      <h3><span id="winner"></span> wins!</h3>
+      <div class="resetBtn">Reset</div>
+  </div>
   </div>
   <script src="js/main.js"></script>
 </body>

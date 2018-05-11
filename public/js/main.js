@@ -1,7 +1,13 @@
 //Global Variables
 const spaces = document.querySelectorAll(".space");
 const whosTurn = document.getElementById("turn");
-const resetBtn = document.getElementById("resetBtn");
+const resetBtn = document.querySelectorAll(".resetBtn");
+const gameOverModal = document.getElementById("gameOverModal");
+const blackFinalScore = document.getElementById("blackScore");
+const whiteFinalScore = document.getElementById("whiteScore");
+const winner = document.getElementById("winner");
+
+console.log(gameOverModal.style.display)
 
 let boardState =  [];
 const empty = 0;
@@ -10,6 +16,7 @@ const white = 2;
 
 let playerTurn; 
 let nextTurn = false;
+let validMoves = 0;
 
 const blackHtml = `<div class="circle playerTwo"></div>`;
 const whiteHtml = `<div class="circle playerOne"></div>`;
@@ -47,32 +54,63 @@ const paintBoard = () => {
     return;
 }
 
-const checkEndGame = () => {
-
+const checkEndGame = () => { 
     boardState.forEach((row, rowIndex) => {
         row.forEach((col, colIndex) => {
-            if(boardState[rowIndex][colIndex] !== 0) {
-                // console.log(`Row ${rowIndex + 1} Col ${colIndex + 1}`,"=",boardState[rowIndex][colIndex])
+            if(boardState[rowIndex][colIndex] === 0) {
+                if(isValidMove([rowIndex, colIndex])) {
+                        search(playerTurn, [rowIndex, colIndex], 0, 1, false); //right
+                        search(playerTurn, [rowIndex, colIndex], 0, -1, false); //left
+                        search(playerTurn, [rowIndex, colIndex], 1, 0, false); //down
+                        search(playerTurn, [rowIndex, colIndex], -1, 0, false); //up
+                
+                        search(playerTurn, [rowIndex, colIndex], 1, 1, false); // down, right
+                        search(playerTurn, [rowIndex, colIndex], 1, -1, false); // down, left
+                        search(playerTurn, [rowIndex, colIndex], -1, 1, false); // up, right
+                        search(playerTurn, [rowIndex, colIndex], -1, -1, false); //up, left     
+                    } 
             }
         });
     });
-    // console.log(`@@@@@@@@@@ End @@@@@@@@@@`);
-    return false;
+    console.log(validMoves);
+    return validMoves > 0 ? false : true;
+}
+
+const endGame = () => {
+    console.log('over')
+    let blackScore = 0;
+    let whiteScore = 0;
+    boardState.forEach((row, rowIndex) => {
+        row.forEach((col, colIndex) => {
+            if(boardState[rowIndex][colIndex] == black) {
+               blackScore++;
+            } else if(boardState[rowIndex][colIndex] == white) {
+                whiteScore++;
+            }
+        });
+    });
+    blackFinalScore.innerText = blackScore;
+    whiteFinalScore.innerText = whiteScore;
+    if (blackScore > whiteScore) {
+        winner.innerText = "Black!";
+    } else if (whiteScore > blackScore) {
+        winner.innerText = "White!";
+    } else {
+        winner.innerText = "Tie!!"
+    }
+    gameOverModal.style.display = "flex";
+    console.log(gameOverModal.style)
+    // alert(`Black: ${blackScore} - White: ${whiteScore}`)
 }
 
 //search the surrounding spaces for possible moves
-const search = (currPlayer, square, stepRow, stepCol, dir) => {
+const search = (currPlayer, square, stepRow, stepCol, moveOrEndGameCheck) => {
     let col, row;
     const opponent = currPlayer === black ? white : black;
     //test to see if a blank square or an occupied square has been clicked
     //if blank, grab the coordinates. If occupied, grab the coordinates of the parents 
-    if(square.target.classList[0] == "space") {
-        col = parseInt(square.target.dataset.col);
-        row = parseInt(square.target.dataset.row);
-    } else {
-        col = parseInt(square.target.parentElement.dataset.col);
-        row = parseInt(square.target.parentElement.dataset.row);
-    }
+    row = square[0];
+    col = square[1];
     // set the flag to stop the while loop
     let end = false;
 
@@ -105,17 +143,23 @@ const search = (currPlayer, square, stepRow, stepCol, dir) => {
                     //else if the adjacent square is the current player
                         //flip all coordinates of (good spots) Array to current player (even if it's zero)
                         //end turn
-                    goodSpots.forEach(val => {
-                        boardState[val[0]][val[1]] = currPlayer;
-                    })
+                    if(moveOrEndGameCheck){
+                        goodSpots.forEach(val => {
+                            boardState[val[0]][val[1]] = currPlayer;
+                        })
 
-                    //if move yeilded some goodSpots, flip the clicked position to current player
-                    // flag for next move and repaint the board
-                    if(goodSpots.length > 0) {
-                        boardState[row][col] = currPlayer;
-                        nextTurn = true;
-                        paintBoard();
-                    } 
+                        //if move yeilded some goodSpots, flip the clicked position to current player
+                        // flag for next move and repaint the board
+                        if(goodSpots.length > 0) {
+                            boardState[row][col] = currPlayer;
+                            nextTurn = true;
+                            paintBoard();
+                        } 
+                    } else {
+                        if(goodSpots.length > 0) {
+                            validMoves += goodSpots.length;
+                        }
+                    }
                     end = true
                 }
 
@@ -125,17 +169,12 @@ const search = (currPlayer, square, stepRow, stepCol, dir) => {
 
 //initial check if the move is valid
 const isValidMove = (square) => {
-    let isValid = false
-    
+    let isValid = false;
+    let col, row;
 
-    if(square.target.classList[0] == "space") {
-        col = parseInt(square.target.dataset.col);
-        row = parseInt(square.target.dataset.row);
-    } else {
-        col = parseInt(square.target.parentElement.dataset.col);
-        row = parseInt(square.target.parentElement.dataset.row);
-    }
-    
+    row = square[0];
+    col = square[1];
+    // }
     let currSpot = boardState[row][col];
     //if there is already something there, not valid.
     if(currSpot !== 0) return false;
@@ -154,27 +193,33 @@ const isValidMove = (square) => {
 }
 
 const spaceClickHandler = (e) => {
-    
+    let clickedSpot = [parseInt(e.currentTarget.dataset.row), parseInt(e.currentTarget.dataset.col)];
+    // debugger;
     nextTurn = false;
 
-    if(isValidMove(e)) {
+    if(isValidMove(clickedSpot)) {
     //Check to the right
-        search(playerTurn, e, 0, 1, "right");
-        search(playerTurn, e, 0, -1, "left");
-        search(playerTurn, e, 1, 0, "down");
-        search(playerTurn, e, -1, 0, "up");
+        search(playerTurn, clickedSpot, 0, 1, true); //right
+        search(playerTurn, clickedSpot, 0, -1, true); //left
+        search(playerTurn, clickedSpot, 1, 0, true); //down
+        search(playerTurn, clickedSpot, -1, 0, true); //up
 
-        search(playerTurn, e, 1, 1, "down, right");
-        search(playerTurn, e, 1, -1, "down, left");
-        search(playerTurn, e, -1, 1, "up, right");
-        search(playerTurn, e, -1, -1, "up, left");        
+        search(playerTurn, clickedSpot, 1, 1, true); // down, right
+        search(playerTurn, clickedSpot, 1, -1, true); // down, left
+        search(playerTurn, clickedSpot, -1, 1, true); // up, right
+        search(playerTurn, clickedSpot, -1, -1, true); //up, left      
     }
+    // debugger;
     if(nextTurn) {
+        playerTurn = playerTurn == black ? white : black;
         if(!checkEndGame()) {
-            playerTurn = playerTurn == black ? white : black;
+            validMoves = 0;
             whosTurn.innerText = (playerTurn === black) ? "Black" : "White";
         } else {
-            // endGame();
+            setTimeout(() => {
+                endGame();
+            }, 500);
+            
         }
     }
 }
@@ -208,7 +253,11 @@ const gameLoad = () => {
         space.addEventListener("click", spaceClickHandler, false);
     });
 
-    resetBtn.addEventListener("click", gameLoad, false);
+    resetBtn.forEach(btn => {
+        btn.addEventListener("click", gameLoad, false);
+    });
+    
+    gameOverModal.style.display = "none";
 
 }
 gameLoad();

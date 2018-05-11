@@ -66,7 +66,7 @@ body {
   padding: 10px;
   box-shadow: 5px 5px 10px 0 black;
 }
-#resetBtn {
+.resetBtn {
   border: 2px solid green;
   border-radius: 10px;
   background-color: greenyellow;
@@ -76,5 +76,36 @@ body {
   &:hover {
     background-color: green;
     color: greenyellow;
+  }
+}
+#gameOverModal {
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(30,30,30, .9);
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+#gameOver {
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+
+  background-color: darkred;
+  color: white;
+  border: 5px solid darkcyan;
+  border-radius: 10px;
+  box-shadow: 5px 5px 10px 0 black;
+  padding: 25px;
+  width: 400px;
+
+  #scores {
+    display: flex;
+    justify-content: space-around;
+    width: 70%;
   }
 }
